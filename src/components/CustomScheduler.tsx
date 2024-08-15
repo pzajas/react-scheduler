@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Paper from "@mui/material/Paper";
 import { ViewState } from "@devexpress/dx-react-scheduler";
 import {
@@ -7,18 +8,40 @@ import {
   MonthView,
   Appointments,
 } from "@devexpress/dx-react-scheduler-material-ui";
-import CustomAppointment from "./CustomAppointment";
+import { CustomAppointment } from "./CustomAppointment";
 import { Button, ToggleButton, ToggleButtonGroup, Box } from "@mui/material";
+import { useQuery } from "@tanstack/react-query";
+import { getAppointments } from "../firebase/firebaseFunctions";
+import { IAppointment, ICurrentView } from "../typescript/interfaces";
 
-const CustomScheduler = ({
-  currentDate,
-  schedulerData,
+export const CustomScheduler = ({
   onOpenDialog,
   onEditAppointment,
   onDeleteAppointment,
-  currentView,
-  onViewChange,
+  initialView = "dayView",
+}: {
+  onOpenDialog: () => void;
+  onEditAppointment: (appointment: IAppointment) => void;
+  onDeleteAppointment: (id: string) => void;
+  initialView?: string;
 }) => {
+  const [currentView, setCurrentView] = useState(initialView);
+  const currentDate = new Date().toISOString().split("T")[0];
+
+  const { data: schedulerData = [] } = useQuery({
+    queryKey: ["appointments"],
+    queryFn: getAppointments,
+  });
+
+  const handleViewChange = (
+    _event: React.MouseEvent<HTMLElement>,
+    newView: ICurrentView
+  ) => {
+    if (newView) {
+      setCurrentView(newView);
+    }
+  };
+
   return (
     <Paper
       style={{ height: "100vh", display: "flex", flexDirection: "column" }}
@@ -32,7 +55,7 @@ const CustomScheduler = ({
         }}
       >
         <Button
-          onClick={() => onOpenDialog(null)}
+          onClick={() => onOpenDialog()}
           variant="contained"
           color="primary"
           style={{ height: 40 }}
@@ -43,7 +66,7 @@ const CustomScheduler = ({
           <ToggleButtonGroup
             value={currentView}
             exclusive
-            onChange={(e, newView) => onViewChange(newView)}
+            onChange={handleViewChange}
             aria-label="view selector"
           >
             <ToggleButton value="dayView" style={{ height: 40, minWidth: 100 }}>
@@ -65,13 +88,13 @@ const CustomScheduler = ({
         </Box>
       </Box>
 
-      <Scheduler data={schedulerData} style={{ flexGrow: 1 }}>
+      <Scheduler data={schedulerData}>
         <ViewState currentDate={currentDate} />
         {currentView === "dayView" && (
-          <DayView startDayHour={6} endDayHour={18} />
+          <DayView startDayHour={6} endDayHour={24} />
         )}
         {currentView === "weekView" && (
-          <WeekView startDayHour={6} endDayHour={18} />
+          <WeekView startDayHour={6} endDayHour={24} />
         )}
         {currentView === "monthView" && <MonthView />}
         <Appointments
@@ -87,5 +110,3 @@ const CustomScheduler = ({
     </Paper>
   );
 };
-
-export default CustomScheduler;

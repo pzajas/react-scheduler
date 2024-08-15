@@ -1,11 +1,10 @@
-// appointmentService.ts
 import {
   collection,
   getDocs,
-  addDoc,
   updateDoc,
   deleteDoc,
   doc,
+  setDoc,
 } from "firebase/firestore";
 import { FIREBASE_DB } from "./firebaseConfig";
 import { IAppointment } from "../typescript/interfaces";
@@ -36,7 +35,8 @@ export const addAppointment = async (
   appointment: IAppointment
 ): Promise<void> => {
   try {
-    await addDoc(collection(FIREBASE_DB, "appointments"), appointment);
+    const docRef = doc(FIREBASE_DB, "appointments", appointment.id);
+    await setDoc(docRef, appointment);
   } catch (error) {
     console.error("Error adding appointment:", error);
     throw new Error("Error adding appointment.");
@@ -45,7 +45,7 @@ export const addAppointment = async (
 
 export const updateAppointment = async (
   id: string,
-  appointment: IAppointment
+  appointment: Partial<IAppointment>
 ): Promise<void> => {
   try {
     const appointmentRef = doc(FIREBASE_DB, "appointments", id);
