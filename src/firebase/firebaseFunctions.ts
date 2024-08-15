@@ -1,31 +1,66 @@
-import { collection, getDocs, query } from "firebase/firestore";
+// appointmentService.ts
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 import { FIREBASE_DB } from "./firebaseConfig";
+import { IAppointment } from "../typescript/interfaces";
 
-export const getCollectionItems = async <T>(
-  firestoreCollection: string
-): Promise<T[] | undefined> => {
+export const getAppointments = async (): Promise<IAppointment[]> => {
   try {
-    const data: T[] = await fetchItems(firestoreCollection);
-    return data || [];
+    const data: IAppointment[] = await fetchAppointments();
+    return data;
   } catch (error) {
-    console.error("Error fetching collection items:", error);
+    console.error("Error fetching appointments:", error);
     return [];
   }
 };
 
-export const fetchItems = async <T>(
-  firestoreCollection: string
-): Promise<T[]> => {
-  let q = null;
-
-  q = query(collection(FIREBASE_DB, firestoreCollection));
-
+export const fetchAppointments = async (): Promise<IAppointment[]> => {
+  const q = collection(FIREBASE_DB, "appointments");
   const querySnapshot = await getDocs(q);
-  const allItems: T[] = [];
+  const allAppointments: IAppointment[] = [];
   querySnapshot.forEach((doc) => {
-    const item = doc.data();
-    item.id = doc.id;
-    allItems.push(item as T);
+    const appointment = doc.data();
+    appointment.id = doc.id;
+    allAppointments.push(appointment as IAppointment);
   });
-  return allItems;
+  return allAppointments;
+};
+
+export const addAppointment = async (
+  appointment: IAppointment
+): Promise<void> => {
+  try {
+    await addDoc(collection(FIREBASE_DB, "appointments"), appointment);
+  } catch (error) {
+    console.error("Error adding appointment:", error);
+    throw new Error("Error adding appointment.");
+  }
+};
+
+export const updateAppointment = async (
+  id: string,
+  appointment: IAppointment
+): Promise<void> => {
+  try {
+    const appointmentRef = doc(FIREBASE_DB, "appointments", id);
+    await updateDoc(appointmentRef, appointment);
+  } catch (error) {
+    console.error("Error updating appointment:", error);
+    throw new Error("Error updating appointment.");
+  }
+};
+
+export const deleteAppointment = async (id: string): Promise<void> => {
+  try {
+    await deleteDoc(doc(FIREBASE_DB, "appointments", id));
+  } catch (error) {
+    console.error("Error deleting appointment:", error);
+    throw new Error("Error deleting appointment.");
+  }
 };
