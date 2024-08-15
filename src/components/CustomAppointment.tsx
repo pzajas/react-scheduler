@@ -1,10 +1,21 @@
 import { useState } from "react";
 import { Appointments } from "@devexpress/dx-react-scheduler-material-ui";
 import { Button } from "@mui/material";
+import { IAppointment } from "../typescript/interfaces";
 
-const CustomAppointment = ({ data, onEdit, onDelete }) => {
+export const CustomAppointment = ({
+  data,
+  onEdit,
+  onDelete,
+}: {
+  data: any;
+  onEdit: (appointment: IAppointment) => void;
+  onDelete: (appointment: string) => void;
+}) => {
   const [hover, setHover] = useState(false);
   const color = "#FF7F00";
+
+  console.log(data, "data from custom");
 
   return (
     <Appointments.Appointment
@@ -57,5 +68,3 @@ const CustomAppointment = ({ data, onEdit, onDelete }) => {
     </Appointments.Appointment>
   );
 };
-
-export default CustomAppointment;
